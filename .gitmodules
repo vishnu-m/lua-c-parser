@@ -1,0 +1,3 @@
+[submodule "lua-clang"]
+	path = lua-clang
+	url = https://github.com/Vishnu-M/lua-clang
