@@ -1,8 +1,5 @@
 local lib = require "luaclang"
-local pprint = require('pprint')
-
---configure pretty-print 
-pprint.setup({sort_keys = false, wrap_array = true})
+local inspect = require "inspect"
 
 --table containing all declarations in the file
 local declarations = {}
@@ -63,7 +60,7 @@ cur = parser:getCursor()
 cur:visitChildren(toplevel_visitor)
 
 --pretty-print the table
-pprint(declarations)
+print(inspect(declarations))
 
 --dispose the parser object
 parser:dispose()
