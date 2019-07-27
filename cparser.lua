@@ -3,8 +3,6 @@ local luaclang = require "luaclang"
 --module table
 local cparser = {}
 
-local declarations = {}
-
 --visitor function for traversing children of an EnumDecl
 local function enum_child_visitor(cursor, parent, enum_fields)
         local kind = cursor:getKind()
@@ -66,6 +64,7 @@ end
 
 function cparser.parse(file_name)
         local parser = luaclang.newParser(file_name)
+        local declarations = {}
         local cur = parser:getCursor()
         cur:visitChildren(toplevel_visitor, declarations)
         parser:dispose()
