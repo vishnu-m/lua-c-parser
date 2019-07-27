@@ -1,4 +1,4 @@
-local lib = require "luaclang"
+local luaclang = require "luaclang"
 
 --module table
 local cparser = {}
@@ -65,7 +65,7 @@ local function toplevel_visitor(cursor, parent, declarations)
 end 
 
 function cparser.parse(file_name)
-        local parser = lib.newParser(file_name)
+        local parser = luaclang.newParser(file_name)
         local cur = parser:getCursor()
         cur:visitChildren(toplevel_visitor, declarations)
         parser:dispose()
