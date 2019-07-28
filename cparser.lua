@@ -5,13 +5,16 @@ local cparser = {}
 
 local function enum_handler(cursor, parent, declarations)
         local fields = {} 
-        cursor:visitChildren(function (cursor, parent, fields)
+        cursor:visitChildren(function (cursor, parent)
                 local kind = cursor:getKind()
                 local enum_const
                 if kind == "EnumConstantDecl" then
-                        enum_const = {}
-                        enum_const.name = cursor:getSpelling()
-                        enum_const.value = cursor:getEnumValue()
+                        enum_const = {
+                                name = cursor:getSpelling(),
+                                value = cursor:getEnumValue()
+                        }
+                        -- enum_const.name = cursor:getSpelling()
+                        -- enum_const.value = cursor:getEnumValue()
                 end
                 table.insert(fields, enum_const)
                 return "continue"
