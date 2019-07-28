@@ -3,52 +3,50 @@ local luaclang = require "luaclang"
 --module table
 local cparser = {}
 
---visitor function for traversing children of an EnumDecl
-local function enum_child_visitor(cursor, parent, enum_fields)
-        local kind = cursor:getKind()
-        local enum_const
-        if kind == "EnumConstantDecl" then
-                enum_const = {}
-                enum_const.name = cursor:getSpelling()
-        elseif kind == "IntegerLiteral" then
-                enum_fields[#enum_fields].value = parent:getEnumValue()
-        end
-        table.insert(enum_fields, enum_const)
-        return "recurse"
-end
-
 local function enum_handler(cursor, parent, declarations)
-        local enum_decl = {} 
-        local enum_fields = {} 
-        enum_decl.tag = 'enum'
-        enum_decl.name = cursor:getSpelling()
-        cursor:visitChildren(enum_child_visitor, enum_fields)
-        enum_decl.fields = enum_fields
-        table.insert(declarations, enum_decl)
+        local fields = {} 
+        cursor:visitChildren(function (cursor, parent, fields)
+                local kind = cursor:getKind()
+                local enum_const
+                if kind == "EnumConstantDecl" then
+                        enum_const = {}
+                        enum_const.name = cursor:getSpelling()
+                        enum_const.value = cursor:getEnumValue()
+                end
+                table.insert(fields, enum_const)
+                return "continue"
+        end, fields)
+        local decl = {
+                tag = 'enum',
+                name = cursor:getSpelling(),
+                fields = fields
+        } 
+        table.insert(declarations, decl)
 end
 
 local function function_handler(cursor, parent, declarations)
-        local func_decl = {}
         local func_params = {}
-        func_decl.tag = 'function'
-        func_decl.name = cursor:getSpelling()
-        func_decl.inline = cursor:isFunctionInlined()
-        func_decl.storage_specifier = cursor:getStorageClass()
         local type = cursor:getType()
         local return_type = type:getResultType()
-        func_decl["return"] = return_type:getSpelling()
         local num_params = cursor:getNumArgs()
-        local param
-        for i=0, num_params-1 do
-                param = {}
+        for i=1, num_params do
                 local param_cursor = cursor:getArgCursor(i)
-                param.name = param_cursor:getSpelling()
                 param_type = param_cursor:getType()
-                param.type = param_type:getSpelling()
+                local param = {
+                        name = param_cursor:getSpelling(),
+                        type = param_type:getSpelling()
+                }
                 table.insert(func_params, param)
         end
-        func_decl.params = func_params
-        table.insert(declarations, func_decl)
+        local decl = {
+                tag = 'function',
+                name = cursor:getSpelling(),
+                inline = cursor:isFunctionInlined(),
+                storage_specifier = cursor:getStorageClass(),
+                ret = return_type:getSpelling(),
+                params = func_params
+        }
+        table.insert(declarations, decl)
 end
 
 --global visitor for spotting all declarations in the file
