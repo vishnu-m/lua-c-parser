@@ -13,8 +13,6 @@ local function enum_handler(cursor, parent, declarations)
                                 name = cursor:getSpelling(),
                                 value = cursor:getEnumValue()
                         }
-                        -- enum_const.name = cursor:getSpelling()
-                        -- enum_const.value = cursor:getEnumValue()
                 end
                 table.insert(fields, enum_const)
                 return "continue"
