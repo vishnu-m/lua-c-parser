@@ -1,2 +1,16 @@
 # c-parser-lua
-Lua library that can parse C declarations using Lua bindings for Libclang functions - https://github.com/Vishnu-M/lua-clang
+
+Lua library that can parse C declarations using Lua bindings for Libclang functions :- (refer) https://github.com/Vishnu-M/lua-clang
+
+## Installation
+
+Load this module in Lua by :
+
+    lib = require "cparser"
+
+Run tests :
+
+ *In the root directory run -* 
+   
+
+     busted
