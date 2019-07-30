@@ -118,3 +118,28 @@ describe("FunctionDecl", function()
                 assert.are.same(expected, declarations)
         end)
 end)
+
+describe("TypedefDecl", function()
+        it("obtains the expected output", function()
+                local expected = { {
+                        tag = "typedef",
+                        type = "DRAWF",
+                        underlying_type = "void (int, int)"
+                      }, {
+                        tag = "typedef",
+                        type = "char_t",
+                        underlying_type = "char"
+                      }, {
+                        tag = "typedef",
+                        type = "char_p",
+                        underlying_type = "char *"
+                      }, {
+                        tag = "typedef",
+                        type = "fp",
+                        underlying_type = "char (*)(void)"
+                      } }
+                
+                local declarations = cparser.parse("spec/typedef.h")
+                assert.are.same(expected, declarations)
+        end)
+end)

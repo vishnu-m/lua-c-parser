@@ -57,6 +57,15 @@ local function toplevel_visitor(cursor, parent, declarations)
                 enum_handler(cursor, parent, declarations)
         elseif kind == "FunctionDecl" then
                 function_handler(cursor, parent, declarations)
+        elseif kind == "TypedefDecl" then
+                local underlying_type = cursor:getTypedefUnderlyingType()
+                local type = cursor:getType()
+                local decl = {
+                        tag = 'typedef',
+                        underlying_type = underlying_type:getSpelling(),
+                        type = type:getSpelling()
+                }
+                table.insert(declarations, decl)
         end
         return "continue"
 end 
