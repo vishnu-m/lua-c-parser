@@ -5,7 +5,7 @@ local cparser = {}
 
 local function enum_handler(cursor, declarations)
         local fields = {} 
-        cursor:visitChildren(function (cursor, _)
+        cursor:visitChildren(function (cursor)
                 local kind = cursor:getKind()
                 local enum_const
                 if kind == "EnumConstantDecl" then
@@ -27,16 +27,7 @@ end
 
 local function union_struct_handler(cursor, declarations) 
         local fields = {}
-        local definition = {}
-        local decl = {
-                name = cursor:getSpelling()
-        }
-        if cursor:getKind() == "StructDecl" then
-                decl.tag = 'struct'
-        else 
-                decl.tag = 'union'
-        end
-        cursor:visitChildren(function (cursor, _)
+        cursor:visitChildren(function (cursor)
                 local kind = cursor:getKind()
                 if kind == "FieldDecl" then
                         local type = cursor:getType()
@@ -50,16 +41,17 @@ local function union_struct_handler(cursor, declarations)
                         end
                         table.insert(fields, field)
                 elseif kind == "StructDecl" or kind == "UnionDecl" then
-                        union_struct_handler(cursor, definition)
+                        union_struct_handler(cursor, declarations)
                 elseif kind == "EnumDecl" then
                         enum_handler(cursor, declarations)
                 end
                 return "continue"
         end) 
-        decl.fields = fields
-        if next(definition) ~= nil then
-                decl.definition = definition
-        end
+        local decl = {
+                name = cursor:getSpelling(),
+                tag = cursor:getKind() == "StructDecl" and 'struct' or 'union',
+                fields = fields
+        }
         table.insert(declarations, decl)
 end
 
@@ -76,7 +68,6 @@ end
 
 local function function_handler(cursor, declarations)
         local func_params = {}
-        local definition = {}
         local type = cursor:getType()
         local return_type = type:getResultType()
         local num_params = cursor:getNumArgs()
