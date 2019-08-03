@@ -3,9 +3,9 @@ local luaclang = require "luaclang"
 --module table
 local cparser = {}
 
-local function enum_handler(cursor, parent, declarations)
+local function enum_handler(cursor, declarations)
         local fields = {} 
-        cursor:visitChildren(function (cursor, parent)
+        cursor:visitChildren(function (cursor)
                 local kind = cursor:getKind()
                 local enum_const
                 if kind == "EnumConstantDecl" then
@@ -16,7 +16,7 @@ local function enum_handler(cursor, parent, declarations)
                 end
                 table.insert(fields, enum_const)
                 return "continue"
-        end, fields)
+        end)
         local decl = {
                 tag = 'enum',
                 name = cursor:getSpelling(),
@@ -25,7 +25,48 @@ local function enum_handler(cursor, parent, declarations)
         table.insert(declarations, decl)
 end
 
-local function function_handler(cursor, parent, declarations)
+local function union_struct_handler(cursor, declarations) 
+        local fields = {}
+        cursor:visitChildren(function (cursor)
+                local kind = cursor:getKind()
+                if kind == "FieldDecl" then
+                        local type = cursor:getType()
+                        local field = {
+                                name = cursor:getSpelling(),
+                                type = type:getSpelling(),
+                        }
+                        if cursor:isBitField() then
+                                field.bit_field = "true"
+                                field.field_width = cursor:getBitFieldWidth()
+                        end
+                        table.insert(fields, field)
+                elseif kind == "StructDecl" or kind == "UnionDecl" then
+                        union_struct_handler(cursor, declarations)
+                elseif kind == "EnumDecl" then
+                        enum_handler(cursor, declarations)
+                end
+                return "continue"
+        end) 
+        local decl = {
+                name = cursor:getSpelling(),
+                tag = cursor:getKind() == "StructDecl" and 'struct' or 'union',
+                fields = fields
+        }
+        table.insert(declarations, decl)
+end
+
+local function var_handler(cursor, declarations)
+        local type = cursor:getType()
+        local decl = {
+                tag = 'variable',
+                name = cursor:getSpelling(),
+                type = type:getSpelling(),
+                storage_specifier = cursor:getStorageClass(),  
+        }
+        table.insert(declarations, decl)
+end
+
+local function function_handler(cursor, declarations)
         local func_params = {}
         local type = cursor:getType()
         local return_type = type:getResultType()
@@ -51,12 +92,12 @@ local function function_handler(cursor, parent, declarations)
 end
 
 --global visitor for spotting all declarations in the file
-local function toplevel_visitor(cursor, parent, declarations)
+local function toplevel_visitor(cursor, _, declarations)
         local kind = cursor:getKind()
         if kind == "EnumDecl" then 
-                enum_handler(cursor, parent, declarations)
+                enum_handler(cursor, declarations)
         elseif kind == "FunctionDecl" then
-                function_handler(cursor, parent, declarations)
+                function_handler(cursor, declarations)
         elseif kind == "TypedefDecl" then
                 local underlying_type = cursor:getTypedefUnderlyingType()
                 local type = cursor:getType()
@@ -66,6 +107,10 @@ local function toplevel_visitor(cursor, parent, declarations)
                         type = type:getSpelling()
                 }
                 table.insert(declarations, decl)
+        elseif kind == "StructDecl" or kind == "UnionDecl" then
+                union_struct_handler(cursor, declarations)
+        elseif kind == "VarDecl" then
+                var_handler(cursor, declarations)
         end
         return "continue"
 end 

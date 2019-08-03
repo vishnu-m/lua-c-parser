@@ -6,3 +6,6 @@ enum week{Mon=99, Tue, Wed, Thur, Fri, Sat, Sun};
 
 /* Enum without name */
 enum {item1, item2};
+
+/* Enum with constant expression */
+enum Foo { A, B, C=10, D, E=1, F, G=F+C};
