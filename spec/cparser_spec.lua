@@ -1,17 +1,20 @@
 local cparser = require "cparser"
 
+local prefix = os.tmpname()
+local fname = prefix .. ".h"
+
 function assert_parser(expected, code)
-        local f = assert(io.open("test.h", 'w'))
+        local f = assert(io.open(fname, 'w'))
         assert(f:write(code))
         assert(f:close())
-        local declarations = cparser.parse("test.h")
-        os.remove("test.h")
+        finally(function() os.remove(fname) end)
+        local declarations = cparser.parse(fname)
         assert.are.same(expected, declarations)
 end
 
 describe("StructDecl", function()
         it("parses an ordinary struct", function()
-                assert_parser({ {
+                assert_parser( { {
                         fields = { {
                             name = "x",
                             type = "int"
@@ -29,7 +32,7 @@ describe("StructDecl", function()
         end)
 
         it("parses a struct with an enum declaration inside", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "Violet",
                             value = 0
@@ -67,7 +70,7 @@ describe("StructDecl", function()
         end)
 
         it("parses an anonymous struct", function()
-                assert_parser({ {
+                assert_parser( { {
                         fields = { {
                             name = "alpha",
                             type = "char"
@@ -81,7 +84,7 @@ describe("StructDecl", function()
                         name = "var",
                         storage_specifier = "none",
                         tag = "variable",
-                        type = "struct (anonymous struct at test.h:1:25)"
+                        type = "struct (anonymous struct at " ..fname.. ":1:25)"
                       } }, [[
                         struct {
                                 char alpha;
@@ -91,7 +94,7 @@ describe("StructDecl", function()
         end)
 
         it("parses a nested struct", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "physics",
                             type = "int"
@@ -126,7 +129,7 @@ describe("StructDecl", function()
         end)
 
         it("parses a struct with a function pointer", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "f",
                             type = "int (*)(int)"
@@ -141,7 +144,7 @@ describe("StructDecl", function()
         end)
 
         it("parses a struct with bit fields", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             bit_field = "true",
                             field_width = 5,
@@ -170,7 +173,7 @@ describe("StructDecl", function()
         end)
 
         it("parses a struct that is forward declared", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = {},
                         name = "context",
                         tag = "struct"
@@ -202,7 +205,7 @@ describe("StructDecl", function()
         end)
 
         it("parses a struct containing a named union", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "a",
                             type = "int"
@@ -212,7 +215,7 @@ describe("StructDecl", function()
                       }, {
                         fields = { {
                             name = "svar1",
-                            type = "struct (anonymous struct at test.h:4:41)"
+                            type = "struct (anonymous struct at " ..fname.. ":4:41)"
                           } },
                         name = "u1",
                         tag = "union"
@@ -239,7 +242,7 @@ describe("StructDecl", function()
         end)
 
         it("parses a struct containing an unnamed union", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "a",
                             type = "int"
@@ -249,7 +252,7 @@ describe("StructDecl", function()
                       }, {
                         fields = { {
                             name = "u",
-                            type = "union (anonymous union at test.h:2:33)"
+                            type = "union (anonymous union at " ..fname.. ":2:33)"
                           }, {
                             name = "b",
                             type = "int"
@@ -269,7 +272,7 @@ end)
 
 describe("UnionDecl", function()
         it("parses an ordinary union", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "x",
                             type = "const int"
@@ -287,7 +290,7 @@ describe("UnionDecl", function()
         end)
 
         it("parses an unnamed union", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "a",
                             type = "const int"
@@ -298,7 +301,7 @@ describe("UnionDecl", function()
                         name = "u1",
                         storage_specifier = "none",
                         tag = "variable",
-                        type = "union (anonymous union at test.h:1:25)"
+                        type = "union (anonymous union at " ..fname.. ":1:25)"
                       } }, [[
                         union {
                                 const int a;
@@ -307,7 +310,7 @@ describe("UnionDecl", function()
         end)
 
         it("parses a union containing a struct declaration", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "b",
                             type = "double"
@@ -332,7 +335,7 @@ describe("UnionDecl", function()
         end)
 
         it("parses an unnamed union enclosing an unnamed struct containing bit fields", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             bit_field = "true",
                             field_width = 8,
@@ -349,7 +352,7 @@ describe("UnionDecl", function()
                       }, {
                         fields = { {
                             name = "window1",
-                            type = "struct (anonymous struct at test.h:2:33)"
+                            type = "struct (anonymous struct at " ..fname.. ":2:33)"
                           }, {
                             name = "screenval",
                             type = "int"
@@ -360,7 +363,7 @@ describe("UnionDecl", function()
                         name = "screen",
                         storage_specifier = "none",
                         tag = "variable",
-                        type = "union (anonymous union at test.h:1:25) [25][80]"
+                        type = "union (anonymous union at " ..fname.. ":1:25) [25][80]"
                       } }, [[
                         union {                   
                                 struct {
@@ -375,7 +378,7 @@ end)
 
 describe("EnumDecl", function()
         it("parses an ordinary enum", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "Red",
                             value = 0
@@ -394,7 +397,7 @@ describe("EnumDecl", function()
         end)
 
         it("parses enum with assigned integral value", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "Mon",
                             value = 99
@@ -425,7 +428,7 @@ describe("EnumDecl", function()
         end)
 
         it("parses enum without a name", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "item1",
                             value = 0
@@ -441,7 +444,7 @@ describe("EnumDecl", function()
         end)
 
         it("parses enum with constant expression", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "A",
                             value = 0
@@ -474,7 +477,7 @@ end)
 
 describe("FunctionDecl", function()
         it("parses a function with storage specifier", function()
-                assert_parser({ {
+                assert_parser( {{
                         inline = false,
                         name = "max",
                         params = { {
@@ -493,7 +496,7 @@ describe("FunctionDecl", function()
         end)
 
         it("parses a function with return type being pointer to an array", function()
-                assert_parser({ {
+                assert_parser( {{
                         inline = false,
                         name = "foo",
                         params = { {
@@ -509,7 +512,7 @@ describe("FunctionDecl", function()
         end)
 
         it("parses a function of type const double", function()
-                assert_parser({ {
+                assert_parser( {{
                         inline = false,
                         name = "check",
                         params = {},
@@ -522,7 +525,7 @@ describe("FunctionDecl", function()
         end)
 
         it("parses an inline function", function()
-                assert_parser({ {
+                assert_parser( {{
                         inline = true,
                         name = "sum",
                         params = { {
@@ -544,7 +547,7 @@ describe("FunctionDecl", function()
         end)
 
         it("parses a function definition", function()
-                assert_parser({ {
+                assert_parser( {{
                         inline = false,
                         name = "increment",
                         params = { {
@@ -563,7 +566,7 @@ describe("FunctionDecl", function()
         end)
 
         it("parses a function declaration that contains an anonymous struct definition", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "a",
                             type = "int"
@@ -574,7 +577,7 @@ describe("FunctionDecl", function()
                         inline = false,
                         name = "foo",
                         params = {},
-                        ret = "struct (anonymous struct at test.h:1:25)",
+                        ret = "struct (anonymous struct at " ..fname.. ":1:25)",
                         storage_specifier = "none",
                         tag = "function"
                       } }, [[
@@ -585,7 +588,7 @@ end)
 
 describe("TypedefDecl", function()
         it("parses typedefs", function()
-                assert_parser({ {
+                assert_parser( {{
                 tag = "typedef",
                 type = "DRAWF",
                 underlying_type = "void (int, int)"
@@ -640,7 +643,7 @@ end)
 
 describe("VarDecl", function()
         it("parses variable with storage class", function()
-                assert_parser({ {
+                assert_parser( {{
                         name = "list",
                         storage_specifier = "static",
                         tag = "variable",
@@ -651,7 +654,7 @@ describe("VarDecl", function()
         end)
 
         it("parses an array of pointers", function()
-                assert_parser({ {
+                assert_parser( {{
                         name = "aptr",
                         storage_specifier = "none",
                         tag = "variable",
@@ -662,7 +665,7 @@ describe("VarDecl", function()
         end)
 
         it("parses a struct variable", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "a",
                             type = "int"
@@ -684,7 +687,7 @@ describe("VarDecl", function()
         end)
 
         it("parses a union variable", function()
-                assert_parser({ {
+                assert_parser( {{
                         fields = { {
                             name = "s",
                             type = "char *"
