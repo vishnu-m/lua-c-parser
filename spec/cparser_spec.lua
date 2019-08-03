@@ -7,7 +7,7 @@ function assert_parser(expected, code)
         local f = assert(io.open(fname, 'w'))
         assert(f:write(code))
         assert(f:close())
-        finally(function() os.remove(fname) end)
+        finally(function() os.remove(prefix) end)
         local declarations = cparser.parse(fname)
         assert.are.same(expected, declarations)
 end
@@ -16,7 +16,7 @@ describe("StructDecl", function()
         it("parses an ordinary struct", function()
                 assert_parser( { {
                         fields = { {
-                            name = "x",
+                            name = "",
                             type = "int"
                           }, {
                             name = "y",
