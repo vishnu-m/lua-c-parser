@@ -16,7 +16,7 @@ describe("StructDecl", function()
         it("parses an ordinary struct", function()
                 assert_parser( { {
                         fields = { {
-                            name = "",
+                            name = "x",
                             type = "int"
                           }, {
                             name = "y",
