@@ -2,6 +2,7 @@ local cparser = require "cparser"
 
 local prefix = os.tmpname()
 local fname = prefix .. ".h"
+os.remove(prefix)
 
 function assert_parser(expected, code)
         local f = assert(io.open(fname, 'w'))
@@ -706,5 +707,3 @@ describe("VarDecl", function()
                 ]])
         end)
 end)
-
-os.remove(prefix)
