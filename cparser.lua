@@ -3,6 +3,45 @@ local luaclang = require "luaclang"
 --module table
 local cparser = {}
 
+function obtain_type(cursor_type)
+        local type_kind = cursor_type:getTypeKind()
+        if type_kind == "ConstantArray" then
+                local element_type = cursor_type:getArrayElementType()
+                return {
+                        tag = 'array',
+                        n = cursor_type:getArraySize(),
+                        type = obtain_type(element_type)
+                } 
+
+        elseif type_kind == "Pointer" then
+                local pointee_type = cursor_type:getPointeeType()
+                if pointee_type:getTypeKind() ~= "FunctionProto" then
+                        return {
+                                tag = 'pointer',
+                                type = obtain_type(pointee_type)
+                        }
+                else 
+                        return obtain_type(pointee_type)
+                end
+
+        elseif type_kind == "FunctionProto" then
+                local return_type = cursor_type:getResultType()
+                local func_pointer_table = {
+                        tag = 'function-pointer',
+                        ret = obtain_type(return_type),
+                        fields = {}
+                }
+                local num_params = cursor_type:getNumArgTypes() 
+                for i=1, num_params do
+                        local arg_type = cursor_type:getArgType(i)
+                        table.insert(func_pointer_table.fields, obtain_type(arg_type))
+                end
+                return func_pointer_table            
+        end
+        return cursor_type:getSpelling()
+
+end
+
 local function enum_handler(cursor, declarations)
         local fields = {} 
         cursor:visitChildren(function (cursor)
@@ -33,7 +72,7 @@ local function union_struct_handler(cursor, declarations)
                         local type = cursor:getType()
                         local field = {
                                 name = cursor:getSpelling(),
-                                type = type:getSpelling(),
+                                type = obtain_type(type),
                         }
                         if cursor:isBitField() then
                                 field.bit_field = "true"
@@ -60,7 +99,7 @@ local function var_handler(cursor, declarations)
         local decl = {
                 tag = 'variable',
                 name = cursor:getSpelling(),
-                type = type:getSpelling(),
+                type = obtain_type(type),
                 storage_specifier = cursor:getStorageClass(),  
         }
         table.insert(declarations, decl)
@@ -76,7 +115,7 @@ local function function_handler(cursor, declarations)
                 param_type = param_cursor:getType()
                 local param = {
                         name = param_cursor:getSpelling(),
-                        type = param_type:getSpelling()
+                        type = obtain_type(param_type)
                 }
                 table.insert(func_params, param)
         end
@@ -85,7 +124,7 @@ local function function_handler(cursor, declarations)
                 name = cursor:getSpelling(),
                 inline = cursor:isFunctionInlined(),
                 storage_specifier = cursor:getStorageClass(),
-                ret = return_type:getSpelling(),
+                ret = obtain_type(return_type),
                 params = func_params
         }
         table.insert(declarations, decl)
@@ -103,7 +142,7 @@ local function toplevel_visitor(cursor, _, declarations)
                 local type = cursor:getType()
                 local decl = {
                         tag = 'typedef',
-                        underlying_type = underlying_type:getSpelling(),
+                        underlying_type = obtain_type(underlying_type),
                         type = type:getSpelling()
                 }
                 table.insert(declarations, decl)
