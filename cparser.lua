@@ -39,7 +39,6 @@ function obtain_type(cursor_type)
                 return func_pointer_table            
         end
         return cursor_type:getSpelling()
-
 end
 
 local function enum_handler(cursor, declarations)
