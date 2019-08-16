@@ -15,7 +15,7 @@ end
 
 describe("StructDecl", function()
         it("parses an ordinary struct", function()
-                assert_parser( { {
+                assert_parser({ {
                         fields = { {
                             name = "x",
                             type = "int"
@@ -33,36 +33,39 @@ describe("StructDecl", function()
         end)
 
         it("parses a struct with an enum declaration inside", function()
-                assert_parser( {{
-                        fields = { {
-                            name = "Violet",
-                            value = 0
-                          }, {
-                            name = "Indigo",
-                            value = 1
-                          }, {
-                            name = "Blue",
-                            value = 2
-                          }, {
-                            name = "Green",
-                            value = 3
-                          }, {
-                            name = "Yellow",
-                            value = 4
-                          }, {
-                            name = "Red",
-                            value = 5
-                          } },
-                        name = "Fruit",
-                        tag = "enum"
-                      }, {
-                        fields = { {
-                            name = "field1",
-                            type = "enum Fruit"
-                          } },
-                        name = "rainbow",
-                        tag = "struct"
-                      } }, [[
+                assert_parser({ {
+                  fields = { {
+                      name = "field1",
+                      type = {
+                        decl = 2,
+                        tag = "decl"
+                      }
+                    } },
+                  name = "rainbow",
+                  tag = "struct"
+                }, {
+                  fields = { {
+                      name = "Violet",
+                      value = 0
+                    }, {
+                      name = "Indigo",
+                      value = 1
+                    }, {
+                      name = "Blue",
+                      value = 2
+                    }, {
+                      name = "Green",
+                      value = 3
+                    }, {
+                      name = "Yellow",
+                      value = 4
+                    }, {
+                      name = "Red",
+                      value = 5
+                    } },
+                  name = "Fruit",
+                  tag = "enum"
+                } }, [[
                         struct rainbow {
                                 enum Fruit{Violet, Indigo, Blue, Green, Yellow, Red};
                                 enum Fruit field1;
@@ -71,22 +74,25 @@ describe("StructDecl", function()
         end)
 
         it("parses an anonymous struct", function()
-                assert_parser( { {
-                        fields = { {
-                            name = "alpha",
-                            type = "char"
-                          }, {
-                            name = "num",
-                            type = "int"
-                          } },
-                        name = "",
-                        tag = "struct"
-                      }, {
-                        name = "var",
-                        storage_specifier = "none",
-                        tag = "variable",
-                        type = "struct (anonymous struct at " ..fname.. ":1:25)"
-                      } }, [[
+                assert_parser({ {
+                  fields = { {
+                      name = "alpha",
+                      type = "char"
+                    }, {
+                      name = "num",
+                      type = "int"
+                    } },
+                  name = "",
+                  tag = "struct"
+                }, {
+                  name = "var",
+                  storage_specifier = "none",
+                  tag = "variable",
+                  type = {
+                    decl = 1,
+                    tag = "decl"
+                  }
+                } }, [[
                         struct {
                                 char alpha;
                                 int num;
@@ -95,25 +101,27 @@ describe("StructDecl", function()
         end)
 
         it("parses a nested struct", function()
-                assert_parser( { {
-                  fields = { {
-                      name = "physics",
-                      type = "int"
-                    } },
-                  name = "marks",
-                  tag = "struct"
-                }, {
+                assert_parser({ {
                   fields = { {
                       name = "m1",
-                      type = "struct marks"
+                      type = {
+                        decl = 2,
+                        tag = "decl"
+                      }
                     }, {
                       name = "m2",
-                      type = "struct marks"
+                      type = {
+                        decl = 2,
+                        tag = "decl"
+                      }
                     }, {
                       name = "pointer",
                       type = {
                         tag = "pointer",
-                        type = "struct Student"
+                        type = {
+                          decl = 1,
+                          tag = "decl"
+                        }
                       }
                     }, {
                       name = "double_pointer",
@@ -121,11 +129,21 @@ describe("StructDecl", function()
                         tag = "pointer",
                         type = {
                           tag = "pointer",
-                          type = "struct Student"
+                          type = {
+                            decl = 1,
+                            tag = "decl"
+                          }
                         }
                       }
                     } },
                   name = "Student",
+                  tag = "struct"
+                }, {
+                  fields = { {
+                      name = "physics",
+                      type = "int"
+                    } },
+                  name = "marks",
                   tag = "struct"
                 } }, [[
                         struct Student {
@@ -139,7 +157,7 @@ describe("StructDecl", function()
         end)
 
         it("parses a struct with a function pointer", function()
-                assert_parser( { {
+                assert_parser({ {
                   fields = { {
                       name = "f",
                       type = {
@@ -158,26 +176,26 @@ describe("StructDecl", function()
         end)
 
         it("parses a struct with bit fields", function()
-                assert_parser( {{
-                        fields = { {
-                            bit_field = "true",
-                            field_width = 5,
-                            name = "x",
-                            type = "int"
-                          }, {
-                            bit_field = "true",
-                            field_width = 1,
-                            name = "y",
-                            type = "int"
-                          }, {
-                            bit_field = "true",
-                            field_width = 2,
-                            name = "z",
-                            type = "int"
-                          } },
-                        name = "bits",
-                        tag = "struct"
-                      } }, [[
+                assert_parser({ {
+                  fields = { {
+                      bit_field = "true",
+                      field_width = 5,
+                      name = "x",
+                      type = "int"
+                    }, {
+                      bit_field = "true",
+                      field_width = 1,
+                      name = "y",
+                      type = "int"
+                    }, {
+                      bit_field = "true",
+                      field_width = 2,
+                      name = "z",
+                      type = "int"
+                    } },
+                  name = "bits",
+                  tag = "struct"
+                } }, [[
                         struct bits {
                                 int x: 5;
                                 int y: 1;
@@ -186,65 +204,38 @@ describe("StructDecl", function()
                 ]])
         end)
 
-        it("parses a struct that is forward declared", function()
-                assert_parser( { {
-                  fields = {},
-                  name = "context",
-                  tag = "struct"
-                }, {
+        it("parses a struct containing a named union", function()
+                assert_parser({ {
                   fields = { {
-                      name = "ctx",
+                      name = "b",
+                      type = "float"
+                    }, {
+                      name = "uvar1",
                       type = {
-                        tag = "pointer",
-                        type = "struct context"
+                        decl = 2,
+                        tag = "decl"
                       }
                     } },
-                  name = "funcptrs",
+                  name = "st1",
                   tag = "struct"
                 }, {
                   fields = { {
-                      name = "fps",
-                      type = "struct funcptrs"
+                      name = "svar1",
+                      type = {
+                        decl = 3,
+                        tag = "decl"
+                      }
                     } },
-                  name = "context",
+                  name = "u1",
+                  tag = "union"
+                }, {
+                  fields = { {
+                      name = "a",
+                      type = "int"
+                    } },
+                  name = "",
                   tag = "struct"
                 } }, [[
-                        struct context;
-                        struct funcptrs{
-                                struct context *ctx;
-                        };
-                        struct context{
-                                struct funcptrs fps;
-                        };                          
-                ]])
-        end)
-
-        it("parses a struct containing a named union", function()
-                assert_parser( {{
-                        fields = { {
-                            name = "a",
-                            type = "int"
-                          } },
-                        name = "",
-                        tag = "struct"
-                      }, {
-                        fields = { {
-                            name = "svar1",
-                            type = "struct (anonymous struct at " ..fname.. ":4:41)"
-                          } },
-                        name = "u1",
-                        tag = "union"
-                      }, {
-                        fields = { {
-                            name = "b",
-                            type = "float"
-                          }, {
-                            name = "uvar1",
-                            type = "union u1"
-                          } },
-                        name = "st1",
-                        tag = "struct"
-                      } }, [[
                         struct st1 {
                                 float b;
                                 union u1 {
@@ -257,24 +248,27 @@ describe("StructDecl", function()
         end)
 
         it("parses a struct containing an unnamed union", function()
-                assert_parser( {{
-                        fields = { {
-                            name = "a",
-                            type = "int"
-                          } },
-                        name = "",
-                        tag = "union"
-                      }, {
-                        fields = { {
-                            name = "u",
-                            type = "union (anonymous union at " ..fname.. ":2:33)"
-                          }, {
-                            name = "b",
-                            type = "int"
-                          } },
-                        name = "st2",
-                        tag = "struct"
-                      } }, [[
+                assert_parser({ {
+                  fields = { {
+                      name = "u",
+                      type = {
+                        decl = 2,
+                        tag = "decl"
+                      }
+                    }, {
+                      name = "b",
+                      type = "int"
+                    } },
+                  name = "st2",
+                  tag = "struct"
+                }, {
+                  fields = { {
+                      name = "a",
+                      type = "int"
+                    } },
+                  name = "",
+                  tag = "union"
+                } }, [[
                         struct st2 {
                                 union {
                                         int a;
@@ -305,19 +299,22 @@ describe("UnionDecl", function()
         end)
 
         it("parses an unnamed union", function()
-                assert_parser( {{
-                        fields = { {
-                            name = "a",
-                            type = "const int"
-                          } },
-                        name = "",
-                        tag = "union"
-                      }, {
-                        name = "u1",
-                        storage_specifier = "none",
-                        tag = "variable",
-                        type = "union (anonymous union at " ..fname.. ":1:25)"
-                      } }, [[
+                assert_parser({ {
+                  fields = { {
+                      name = "a",
+                      type = "const int"
+                    } },
+                  name = "",
+                  tag = "union"
+                }, {
+                  name = "u1",
+                  storage_specifier = "none",
+                  tag = "variable",
+                  type = {
+                    decl = 1,
+                    tag = "decl"
+                  }
+                } }, [[
                         union {
                                 const int a;
                         }u1;                 
@@ -325,14 +322,7 @@ describe("UnionDecl", function()
         end)
 
         it("parses a union containing a struct declaration", function()
-                assert_parser( { {
-                  fields = { {
-                      name = "b",
-                      type = "double"
-                    } },
-                  name = "st1",
-                  tag = "struct"
-                }, {
+                assert_parser({ {
                   fields = { {
                       name = "s",
                       type = {
@@ -342,6 +332,13 @@ describe("UnionDecl", function()
                     } },
                   name = "un2",
                   tag = "union"
+                }, {
+                  fields = { {
+                      name = "b",
+                      type = "double"
+                    } },
+                  name = "st1",
+                  tag = "struct"
                 } }, [[
                         union un2 {
                                 struct st1 {
@@ -353,7 +350,20 @@ describe("UnionDecl", function()
         end)
 
         it("parses an unnamed union enclosing an unnamed struct containing bit fields", function()
-                assert_parser( { {
+                assert_parser({ {
+                  fields = { {
+                      name = "window1",
+                      type = {
+                        decl = 2,
+                        tag = "decl"
+                      }
+                    }, {
+                      name = "screenval",
+                      type = "int"
+                    } },
+                  name = "",
+                  tag = "union"
+                }, {
                   fields = { {
                       bit_field = "true",
                       field_width = 8,
@@ -368,16 +378,6 @@ describe("UnionDecl", function()
                   name = "",
                   tag = "struct"
                 }, {
-                  fields = { {
-                    name = "window1",
-                    type = "struct (anonymous struct at " ..fname.. ":2:33)"
-                  }, {
-                    name = "screenval",
-                    type = "int"
-                  } },            
-                  name = "",
-                  tag = "union"
-                }, {
                   name = "screen",
                   storage_specifier = "none",
                   tag = "variable",
@@ -387,7 +387,10 @@ describe("UnionDecl", function()
                     type = {
                       n = 80.0,
                       tag = "array",
-                      type = "union (anonymous union at " ..fname.. ":1:25)"
+                      type = {
+                        decl = 1,
+                        tag = "decl"
+                      }
                     }
                   }
                 } }, [[
@@ -602,21 +605,24 @@ describe("FunctionDecl", function()
         end)
 
         it("parses a function declaration that contains an anonymous struct definition", function()
-                assert_parser( {{
-                        fields = { {
-                            name = "a",
-                            type = "int"
-                          } },
-                        name = "",
-                        tag = "struct"
-                      }, {
-                        inline = false,
-                        name = "foo",
-                        params = {},
-                        ret = "struct (anonymous struct at " ..fname.. ":1:25)",
-                        storage_specifier = "none",
-                        tag = "function"
-                      } }, [[
+                assert_parser({ {
+                  fields = { {
+                      name = "a",
+                      type = "int"
+                    } },
+                  name = "",
+                  tag = "struct"
+                }, {
+                  inline = false,
+                  name = "foo",
+                  params = {},
+                  ret = {
+                    decl = 1,
+                    tag = "decl"
+                  },
+                  storage_specifier = "none",
+                  tag = "function"
+                } }, [[
                         struct { int a; } foo(void);
                 ]])
         end)
@@ -624,7 +630,7 @@ end)
 
 describe("TypedefDecl", function()
         it("parses typedefs", function()
-                assert_parser( { {
+                assert_parser({ {
                   tag = "typedef",
                   type = "DRAWF",
                   underlying_type = {
@@ -652,13 +658,19 @@ describe("TypedefDecl", function()
                 }, {
                   tag = "typedef",
                   type = "GROUP",
-                  underlying_type = "struct club"
+                  underlying_type = {
+                    decl = 2,
+                    tag = "decl"
+                  }
                 }, {
                   tag = "typedef",
                   type = "PG",
                   underlying_type = {
                     tag = "pointer",
-                    type = "GROUP"
+                    type = {
+                      decl = 3,
+                      tag = "decl"
+                    }
                   }
                 }, {
                   tag = "typedef",
@@ -729,19 +741,22 @@ describe("VarDecl", function()
         end)
 
         it("parses a struct variable", function()
-                assert_parser( {{
-                        fields = { {
-                            name = "a",
-                            type = "int"
-                          } },
-                        name = "st1",
-                        tag = "struct"
-                      }, {
-                        name = "st1_instance",
-                        storage_specifier = "none",
-                        tag = "variable",
-                        type = "struct st1"
-                      } }, [[
+                assert_parser({ {
+                  fields = { {
+                      name = "a",
+                      type = "int"
+                    } },
+                  name = "st1",
+                  tag = "struct"
+                }, {
+                  name = "st1_instance",
+                  storage_specifier = "none",
+                  tag = "variable",
+                  type = {
+                    decl = 1,
+                    tag = "decl"
+                  }
+                } }, [[
                         struct st1 {
                                 int a;
                         };
@@ -751,7 +766,7 @@ describe("VarDecl", function()
         end)
 
         it("parses a union variable", function()
-                assert_parser( { {
+                assert_parser({ {
                   fields = { {
                       name = "s",
                       type = {
@@ -765,7 +780,10 @@ describe("VarDecl", function()
                   name = "un1_instance",
                   storage_specifier = "none",
                   tag = "variable",
-                  type = "union un1"
+                  type = {
+                    decl = 1,
+                    tag = "decl"
+                  }
                 } }, [[
                         union un1 {
                                 char *s;
