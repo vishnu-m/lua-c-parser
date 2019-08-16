@@ -40,14 +40,14 @@ function obtain_type(cursor_type, cursor_map)
 
         elseif type_kind == "Elaborated" or type_kind == "Typedef" then
                 local cursor = cursor_type:getTypeDeclaration()
-                        for i, c in ipairs(cursor_map) do
-                                if c:equals(cursor) then
-                                        return {
-                                                tag = 'decl',
-                                                decl = i
-                                        }
-                                end
+                for i, c in ipairs(cursor_map) do
+                        if c:equals(cursor) then
+                                return {
+                                        tag = 'decl',
+                                        decl = i
+                                }
                         end
+                end
         end
         return cursor_type:getSpelling()
 end
@@ -105,13 +105,11 @@ local function union_struct_handler(cursor, declarations, cursor_map)
                 elseif kind == "EnumDecl" then
                         enum_handler(cursor, declarations, cursor_map)
                 end
-
                 return "continue"
         end) 
 end
 
 local function var_handler(cursor, declarations, cursor_map)
-        table.insert(cursor_map, cursor)
         local type = cursor:getType()
         local decl = {
                 tag = 'variable',
@@ -119,7 +117,7 @@ local function var_handler(cursor, declarations, cursor_map)
                 type = obtain_type(type, cursor_map),
                 storage_specifier = cursor:getStorageClass(),  
         }
-        table.insert(declarations, decl)
+        add_declaration(cursor, decl, declarations, cursor_map)
 end
 
 local function function_handler(cursor, declarations, cursor_map)
